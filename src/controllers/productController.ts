@@ -10,6 +10,7 @@ export const getProducts = async (req: Request, res: Response) => {
       id: p.id,
       cost_price: p.costPrice || "",
       image_url: p.imageUrl || "",
+      image_urls: p.imageUrls || [],
     }));
     res.json(mappedProducts);
   } catch (error: any) {
@@ -29,6 +30,7 @@ export const getProductById = async (req: Request, res: Response) => {
       id: p.id,
       cost_price: p.costPrice || "",
       image_url: p.imageUrl || "",
+      image_urls: p.imageUrls || [],
       category: p.category,
     });
   } catch (error: any) {
@@ -38,9 +40,14 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   const { name, category, price, cost_price, color, quantity, description } = req.body;
-  const imageUrl = req.file 
-    ? (req.file as any).location || `/uploads/${req.file.filename}` 
-    : null;
+  
+  const imageUrls: string[] = [];
+  if (req.files && Array.isArray(req.files)) {
+    req.files.forEach((file: any) => {
+      imageUrls.push(file.location || `/uploads/${file.filename}`);
+    });
+  }
+  const imageUrl = imageUrls.length > 0 ? imageUrls[0] : "";
 
   try {
     const p = await Product.create({
@@ -51,6 +58,7 @@ export const createProduct = async (req: Request, res: Response) => {
       color,
       quantity: quantity || 0,
       imageUrl,
+      imageUrls,
       description,
     });
     
@@ -59,6 +67,7 @@ export const createProduct = async (req: Request, res: Response) => {
       id: p.id,
       cost_price: p.costPrice || "",
       image_url: p.imageUrl || "",
+      image_urls: p.imageUrls || [],
     });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -76,7 +85,30 @@ export const updateProduct = async (req: Request, res: Response) => {
     const updateData: any = { ...req.body };
     // Map snake_case to camelCase for DB
     if (req.body.cost_price !== undefined) updateData.costPrice = req.body.cost_price;
-    if (req.body.image_url !== undefined) updateData.imageUrl = req.body.image_url;
+
+    let finalImageUrls: string[] = [];
+    if (req.body.existing_images !== undefined) {
+      try {
+        finalImageUrls = typeof req.body.existing_images === 'string'
+          ? JSON.parse(req.body.existing_images)
+          : req.body.existing_images;
+      } catch (e) {
+        finalImageUrls = Array.isArray(req.body.existing_images)
+          ? req.body.existing_images
+          : [req.body.existing_images];
+      }
+    } else {
+      finalImageUrls = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls : (product.imageUrl ? [product.imageUrl] : []);
+    }
+
+    if (req.files && Array.isArray(req.files)) {
+      req.files.forEach((file: any) => {
+        finalImageUrls.push(file.location || `/uploads/${file.filename}`);
+      });
+    }
+
+    updateData.imageUrls = finalImageUrls;
+    updateData.imageUrl = finalImageUrls.length > 0 ? finalImageUrls[0] : "";
 
     if (req.body.quantity !== undefined) {
       const adjustment = parseFloat(req.body.quantity);
@@ -85,10 +117,6 @@ export const updateProduct = async (req: Request, res: Response) => {
       } else {
         updateData.quantity = adjustment;
       }
-    }
-
-    if (req.file) {
-      updateData.imageUrl = (req.file as any).location || `/uploads/${req.file.filename}`;
     }
 
     const p = await Product.findByIdAndUpdate(
@@ -104,6 +132,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       id: p.id,
       cost_price: p.costPrice || "",
       image_url: p.imageUrl || "",
+      image_urls: p.imageUrls || [],
     });
   } catch (error: any) {
     console.error('Update Product Error:', error);

@@ -8,6 +8,7 @@ export interface IProduct extends Document {
   color: string;
   quantity: number;
   imageUrl?: string;
+  imageUrls: string[];
   description?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +23,7 @@ const ProductSchema: Schema = new Schema(
     color: { type: String, required: true },
     quantity: { type: Number, default: 0, min: [0, 'Quantity cannot be less than zero'] },
     imageUrl: { type: String },
+    imageUrls: { type: [String], default: [] },
     description: { type: String },
   },
   {
