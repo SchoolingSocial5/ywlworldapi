@@ -13,6 +13,8 @@ export interface ISetting extends Document {
   favicon?: string;
   currencySymbol?: string;
   showBlog?: boolean;
+  useDynamicCurrency?: boolean;
+  defaultCountry?: string;
 }
 
 const SettingSchema: Schema = new Schema(
@@ -29,6 +31,8 @@ const SettingSchema: Schema = new Schema(
     favicon: { type: String },
     currencySymbol: { type: String, default: '₦' },
     showBlog: { type: Boolean, default: true },
+    useDynamicCurrency: { type: Boolean, default: true },
+    defaultCountry: { type: String, default: 'GBR' },
   },
   {
     timestamps: true,

@@ -20,6 +20,8 @@ export const getSettings = async (req: Request, res: Response) => {
       favicon: settings.favicon || "",
       currency_symbol: settings.currencySymbol || "₦",
       show_blog: settings.showBlog !== undefined ? settings.showBlog : true,
+      use_dynamic_currency: settings.useDynamicCurrency !== undefined ? settings.useDynamicCurrency : true,
+      default_country: settings.defaultCountry || "GBR",
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -41,6 +43,8 @@ export const updateSettings = async (req: Request, res: Response) => {
     if (req.body.address !== undefined) updateData.address = req.body.address;
     if (req.body.currency_symbol !== undefined) updateData.currencySymbol = req.body.currency_symbol;
     if (req.body.show_blog !== undefined) updateData.showBlog = req.body.show_blog === true || req.body.show_blog === 'true';
+    if (req.body.use_dynamic_currency !== undefined) updateData.useDynamicCurrency = req.body.use_dynamic_currency === true || req.body.use_dynamic_currency === 'true';
+    if (req.body.default_country !== undefined) updateData.defaultCountry = req.body.default_country;
 
     if (!settings) {
       settings = new Setting(updateData);
@@ -74,6 +78,8 @@ export const updateSettings = async (req: Request, res: Response) => {
       favicon: settings.favicon || "",
       currency_symbol: settings.currencySymbol || "₦",
       show_blog: settings.showBlog !== undefined ? settings.showBlog : true,
+      use_dynamic_currency: settings.useDynamicCurrency !== undefined ? settings.useDynamicCurrency : true,
+      default_country: settings.defaultCountry || "GBR",
     });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
