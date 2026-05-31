@@ -17,6 +17,7 @@ export const getSettings = async (req: Request, res: Response) => {
       phone_number: settings.phoneNumber || "",
       address: settings.address || "",
       logo: settings.logo || "",
+      dark_logo: settings.darkLogo || "",
       favicon: settings.favicon || "",
       currency_symbol: settings.currencySymbol || "₦",
       show_blog: settings.showBlog !== undefined ? settings.showBlog : true,
@@ -57,6 +58,9 @@ export const updateSettings = async (req: Request, res: Response) => {
       if (files['logo']) {
         settings.logo = (files['logo'][0] as any).location || `/uploads/${files['logo'][0].filename}`;
       }
+      if (files['dark_logo']) {
+        settings.darkLogo = (files['dark_logo'][0] as any).location || `/uploads/${files['dark_logo'][0].filename}`;
+      }
       if (files['favicon']) {
         settings.favicon = (files['favicon'][0] as any).location || `/uploads/${files['favicon'][0].filename}`;
       }
@@ -75,6 +79,7 @@ export const updateSettings = async (req: Request, res: Response) => {
       phone_number: settings.phoneNumber || "",
       address: settings.address || "",
       logo: settings.logo || "",
+      dark_logo: settings.darkLogo || "",
       favicon: settings.favicon || "",
       currency_symbol: settings.currencySymbol || "₦",
       show_blog: settings.showBlog !== undefined ? settings.showBlog : true,

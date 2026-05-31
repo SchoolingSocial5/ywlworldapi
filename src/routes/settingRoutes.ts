@@ -8,6 +8,7 @@ const router = Router();
 router.get('/', getSettings);
 router.post('/', protect, adminOnly, upload.fields([
     { name: 'logo', maxCount: 1 },
+    { name: 'dark_logo', maxCount: 1 },
     { name: 'favicon', maxCount: 1 }
 ]), updateSettings);
 

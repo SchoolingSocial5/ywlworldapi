@@ -10,6 +10,7 @@ export interface ISetting extends Document {
   phoneNumber?: string;
   address?: string;
   logo?: string;
+  darkLogo?: string;
   favicon?: string;
   currencySymbol?: string;
   showBlog?: boolean;
@@ -28,6 +29,7 @@ const SettingSchema: Schema = new Schema(
     phoneNumber: { type: String },
     address: { type: String },
     logo: { type: String },
+    darkLogo: { type: String },
     favicon: { type: String },
     currencySymbol: { type: String, default: '₦' },
     showBlog: { type: Boolean, default: true },
