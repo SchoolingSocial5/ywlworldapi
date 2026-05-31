@@ -6,7 +6,7 @@ export const getSocialPlatforms = async (req: Request, res: Response) => {
     const platforms = await SocialPlatform.find({ isActive: true });
     res.json(platforms.map(p => ({
       id: p._id,
-      platform: p.name,
+      name: p.name,
       url: p.url,
       icon: p.icon,
       handle: p.handle
@@ -18,9 +18,42 @@ export const getSocialPlatforms = async (req: Request, res: Response) => {
 
 export const createSocialPlatform = async (req: Request, res: Response) => {
   try {
-    const platform = new SocialPlatform(req.body);
+    const data = { ...req.body };
+    if (req.file) {
+      data.icon = (req.file as any).location || `/uploads/${req.file.filename}`;
+    }
+    const platform = new SocialPlatform(data);
     await platform.save();
-    res.status(201).json(platform);
+    res.status(201).json({
+      id: platform._id,
+      name: platform.name,
+      url: platform.url,
+      icon: platform.icon,
+      handle: platform.handle
+    });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const updateSocialPlatform = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const data = { ...req.body };
+    if (req.file) {
+      data.icon = (req.file as any).location || `/uploads/${req.file.filename}`;
+    }
+    const platform = await SocialPlatform.findByIdAndUpdate(id, data, { new: true });
+    if (!platform) {
+      return res.status(404).json({ message: 'Platform not found' });
+    }
+    res.json({
+      id: platform._id,
+      name: platform.name,
+      url: platform.url,
+      icon: platform.icon,
+      handle: platform.handle
+    });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
