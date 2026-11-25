@@ -53,15 +53,19 @@ export const updateSettings = async (req: Request, res: Response) => {
       settings.set(updateData);
     }
 
+    if (req.body.logo !== undefined && req.body.logo === '') settings.logo = '';
+    if (req.body.dark_logo !== undefined && req.body.dark_logo === '') settings.darkLogo = '';
+    if (req.body.favicon !== undefined && req.body.favicon === '') settings.favicon = '';
+
     if (req.files) {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-      if (files['logo']) {
+      if (files['logo'] && files['logo'][0]) {
         settings.logo = (files['logo'][0] as any).location || `/uploads/${files['logo'][0].filename}`;
       }
-      if (files['dark_logo']) {
+      if (files['dark_logo'] && files['dark_logo'][0]) {
         settings.darkLogo = (files['dark_logo'][0] as any).location || `/uploads/${files['dark_logo'][0].filename}`;
       }
-      if (files['favicon']) {
+      if (files['favicon'] && files['favicon'][0]) {
         settings.favicon = (files['favicon'][0] as any).location || `/uploads/${files['favicon'][0].filename}`;
       }
     }

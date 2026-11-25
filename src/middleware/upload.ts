@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import https from 'https';
 import { S3Client } from '@aws-sdk/client-s3';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
@@ -155,24 +156,47 @@ if (isCloudflare) {
   };
 } else {
   // Fallback to local storage if neither Cloudflare nor AWS is configured
-  storage = multer.diskStorage({
+  const uploadDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const rawDiskStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, 'uploads/');
+      cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
       const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
       cb(null, `${Date.now()}-${sanitizedName}`);
     },
   });
+
+  const originalHandleFile = (rawDiskStorage as any)._handleFile.bind(rawDiskStorage);
+  storage = {
+    _handleFile: (req: any, file: any, cb: any) => {
+      originalHandleFile(req, file, (err: any, info: any) => {
+        if (err) return cb(err);
+        if (info && info.filename) {
+          info.location = `/uploads/${info.filename}`;
+        }
+        cb(null, info);
+      });
+    },
+    _removeFile: (req: any, file: any, cb: any) => {
+      (rawDiskStorage as any)._removeFile(req, file, cb);
+    },
+  };
 }
 
 const fileFilter = (req: any, file: any, cb: any) => {
-  // Support images and common document files
-  const allowedFileTypes = /jpeg|jpg|png|gif|webp|svg|pdf|doc|docx|xlsx|xls/;
-  const mimetype = allowedFileTypes.test(file.mimetype);
-  const extname = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
+  // Support images (including SVG, ICO, AVIF) and common document files
+  const allowedExtRegex = /\.(jpe?g|png|gif|webp|svg|ico|cur|avif|pdf|docx?|xlsx?)$/i;
+  const allowedMimeRegex = /^(image\/(jpeg|jpg|png|gif|webp|svg\+xml|x-icon|vnd\.microsoft\.icon|ico|avif)|application\/(pdf|msword|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet)|vnd\.ms-excel))$/i;
 
-  if (mimetype && extname) {
+  const extname = allowedExtRegex.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedMimeRegex.test(file.mimetype) || (file.mimetype && file.mimetype.startsWith('image/'));
+
+  if (extname || mimetype) {
     return cb(null, true);
   }
   cb(new Error('File type not allowed! Only images and common documents are permitted.'));
